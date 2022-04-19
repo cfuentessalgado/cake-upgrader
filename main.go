@@ -10,6 +10,19 @@ import (
 	"github.com/iancoleman/strcase"
 )
 
+var ROOT_ONE_TO_TWO = map[string]string{
+	"config":      "Config",
+	"console":     "Console",
+	"controllers": "Controller",
+	"lib":         "Lib",
+	"locale":      "Locale",
+	"models":      "Model",
+	"plugins":     "Plugin",
+	"tests":       "Test",
+	"vendors":     "Vendor",
+	"views":       "View",
+}
+
 func main() {
 	args := os.Args
 
@@ -44,10 +57,12 @@ func camelCaseDirectories(path string) {
 		if directoryIsNotAllowed(f.Name()) {
 			continue
 		}
-		if f.IsDir() && !directoryContainsClasses(path + "/" + f.Name()) {
+		if !shouldChange(f.Name()) {
 			continue
 		}
-		renameFileInPath(path, f.Name(), strcase.ToCamel(f.Name()))
+		fmt.Println(f.Name())
+		target := strcase.ToCamel(f.Name())
+		renameFileInPath(path, f.Name(), target)
 	}
 }
 
@@ -62,22 +77,31 @@ func handleError(err error) {
 }
 
 func renameFileInPath(path string, old string, new string) {
-	err := os.Rename(path+"/"+old, path+"/"+new)
-	handleError(err)
+	_ = os.Rename(path+"/"+old, path+"/"+new)
+
 }
 
 func directoryContainsClasses(dir string) bool {
-    fmt.Println("Checking for classes in ", dir)
 	files, err := ioutil.ReadDir(dir)
 	handleError(err)
 
 	for _, f := range files {
-		content, err := ioutil.ReadFile(dir+"/"+f.Name())
+		if f.IsDir() {
+			continue
+		}
+		content, err := ioutil.ReadFile(dir + "/" + f.Name())
 		handleError(err)
 		if strings.Contains(string(content), "class ") {
-		    fmt.Println(string(content))
 			return true
 		}
+	}
+	return false
+}
+
+func shouldChange(folder string) bool {
+    fmt.Println(folder)
+	if _, k := ROOT_ONE_TO_TWO[folder]; k {
+		return true
 	}
 	return false
 }
