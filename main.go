@@ -44,6 +44,7 @@ func main() {
 
 func oneToTwo(path string) {
 	camelCaseDirectories(path + "/app")
+	changeDirectoryNamesInBootstrapFile(path)
 }
 
 func camelCaseDirectories(path string) {
@@ -99,9 +100,23 @@ func directoryContainsClasses(dir string) bool {
 }
 
 func shouldChange(folder string) bool {
-    fmt.Println(folder)
+	fmt.Println(folder)
 	if _, k := ROOT_ONE_TO_TWO[folder]; k {
 		return true
 	}
 	return false
+}
+
+func changeDirectoryNamesInBootstrapFile(root string) {
+	path := root + "/cake/config/paths.php"
+	pathsFileContent, err := os.ReadFile(path)
+	info, err := os.Stat(path)
+	handleError(err)
+	fmt.Println(string(pathsFileContent))
+	newContent := string(pathsFileContent)
+	for o, n := range ROOT_ONE_TO_TWO {
+		newContent =
+			strings.ReplaceAll(newContent, "APP.'"+o+"'", "APP.'"+n+"'")
+	}
+	os.WriteFile(path, []byte(newContent), info.Mode())
 }
